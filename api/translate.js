@@ -36,26 +36,33 @@ Rules:
 - If the word has no good Cantonese equivalent, say so in notes and give the closest translation.`;
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-5",
-        max_tokens: 1000,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: word }],
-      }),
-    });
-
-    const data = await response.json();
-    const text = data.content.map((b) => b.text || "").join("");
-    const parsed = JSON.parse(text.replace(/```json|```/g, "").trim());
-    res.status(200).json(parsed);
-  } catch (e) {
+        const response = await fetch("https://api.anthropic.com/v1/messages", {
+              method: "POST",
+                    headers: {
+                            "Content-Type": "application/json",
+                                    "x-api-key": process.env.ANTHROPIC_API_KEY,
+                                            "anthropic-version": "2023-06-01",
+                                                  },
+                                                        body: JSON.stringify({
+                                                                model: "claude-sonnet-4-5",
+                                                                        max_tokens: 1000,
+                                                                                system: SYSTEM_PROMPT,
+                                                                                        messages: [{ role: "user", content: word }],
+                                                                                              }),
+                                                                                                  });
+                                                                                                      const data = await response.json();
+                                                                                                          console.log("Anthropic response:", JSON.stringify(data));
+                                                                                                              if (!response.ok) {
+                                                                                                                    return res.status(500).json({ error: data.error?.message || "Anthropic error", detail: data });
+                                                                                                                        }
+                                                                                                                            const text = data.content.map((b) => b.text || "").join("");
+                                                                                                                                const parsed = JSON.parse(text.replace(/```json|```/g, "").trim());
+                                                                                                                                    res.status(200).json(parsed);
+                                                                                                                                      } catch (e) {
+                                                                                                                                          console.error("Caught error:", e.message);
+                                                                                                                                              res.status(500).json({ error: e.message });
+                                                                                                                                                }st
+  }} catch (e) {
     console.error(e);
     res.status(500).json({ error: "Translation failed" });
   }
